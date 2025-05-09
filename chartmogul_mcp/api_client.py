@@ -8,7 +8,7 @@ def init_chartmogul_config():
 
 ## Customers Endpoints
 
-def list_customers(config, data_source_uuid=None, external_id=None, status=None, system=None) -> list:
+def list_customers(config, data_source_uuid=None, external_id=None, status=None, system=None, limit=100) -> list:
     """
     List all customers from ChartMogul API.
         
@@ -18,8 +18,9 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
     all_customers = []
     has_more = True
     cursor = None
-    per_page = 200
-    while has_more:
+    per_page = 10
+    total = 0
+    while has_more and total < limit:
         request = chartmogul.Customer.all(config,
                                           data_source_uuid=data_source_uuid,
                                           external_id=external_id,
@@ -30,6 +31,7 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
         try:
             customers = request.get()
             all_customers.extend([entry.__dict__ for entry in customers.entries])
+            total += per_page
             has_more = customers.has_more
             cursor = customers.cursor
         except Exception as e:
@@ -56,23 +58,6 @@ def retrieve_customer(config, uuid):
     return customer
 
 
-def delete_customer(config, uuid):
-    """
-    Delete a customer from ChartMogul API.
-
-    Returns:
-    """
-    print(f"Deleting customer {uuid}.")
-    request = chartmogul.Customer.destroy(config, uuid=uuid)
-    try:
-        request.get()
-    except Exception as e:
-        print(f"Error deleting customer: {str(e)}")
-        traceback.print_exc()
-        return False
-    return True
-
-
 def update_customer(config, uuid, data):
     """
     Update a customer from ChartMogul API.
@@ -90,7 +75,7 @@ def update_customer(config, uuid, data):
     return customer
 
 
-def search_customers(config, email) -> list:
+def search_customers(config, email, limit=100) -> list:
     """
     Search all customers by email from ChartMogul API.
 
@@ -101,11 +86,13 @@ def search_customers(config, email) -> list:
     has_more = True
     cursor = None
     per_page = 200
-    while has_more:
+    total = 0
+    while has_more and total < limit:
         request = chartmogul.Customer.search(config, email=email, cursor=cursor, per_page=per_page)
         try:
             customers = request.get()
             all_customers.extend([entry.__dict__ for entry in customers.entries])
+            total += per_page
             has_more = customers.has_more
             cursor = customers.cursor
         except Exception as e:
@@ -113,50 +100,6 @@ def search_customers(config, email) -> list:
             traceback.print_exc()
             return None
     return all_customers
-
-
-def merge_customers(config, from_uuid, to_uuid):
-    """
-    Merging customer to existing one using ChartMogul API.
-
-    Returns:
-    """
-    print(f"Merging customer {from_uuid} to {to_uuid}.")
-    data = {
-        'from': {'customer_uuid': from_uuid},
-        'into': {'customer_uuid': to_uuid}
-    }
-    request = chartmogul.Customer.merge(config, data=data)
-    try:
-        response = request.get()
-    except Exception as e:
-        print(f"Error merging customer: {str(e)}")
-        traceback.print_exc()
-        return None
-    return response
-
-
-def unmerge_customers(config, customer_uuid, data_source_uuid, external_id, move_to_new_customer=[]):
-    """
-    Unmerging customers that were previously merged.
-
-    Returns:
-    """
-    print(f"Unmerging customer {customer_uuid}, {data_source_uuid}, {external_id}, {move_to_new_customer}.")
-    data = {
-        'customer_uuid': customer_uuid,
-        'data_source_uuid': data_source_uuid,
-        'external_id': external_id,
-        'move_to_new_customer': move_to_new_customer
-    }
-    request = chartmogul.Customer.unmerge(config, data=data)
-    try:
-        response = request.get()
-    except Exception as e:
-        print(f"Error unmerging customer: {str(e)}")
-        traceback.print_exc()
-        return None
-    return response
 
 
 ## Metrics API Endpoints
