@@ -8,7 +8,7 @@ def init_chartmogul_config():
 
 ## Customers Endpoints
 
-def list_customers(config, data_source_uuid=None, external_id=None, status=None, system=None, limit=100) -> list:
+def list_customers(config, data_source_uuid=None, external_id=None, status=None, system=None, limit=20) -> list:
     """
     List all customers from ChartMogul API.
         
@@ -18,7 +18,7 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
     all_customers = []
     has_more = True
     cursor = None
-    per_page = 10
+    per_page = 20
     total = 0
     while has_more and total < limit:
         request = chartmogul.Customer.all(config,
@@ -75,7 +75,7 @@ def update_customer(config, uuid, data):
     return customer
 
 
-def search_customers(config, email, limit=100) -> list:
+def search_customers(config, email, limit=20) -> list:
     """
     Search all customers by email from ChartMogul API.
 
@@ -85,7 +85,7 @@ def search_customers(config, email, limit=100) -> list:
     all_customers = []
     has_more = True
     cursor = None
-    per_page = 200
+    per_page = 20
     total = 0
     while has_more and total < limit:
         request = chartmogul.Customer.search(config, email=email, cursor=cursor, per_page=per_page)

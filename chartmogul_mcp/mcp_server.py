@@ -28,21 +28,21 @@ class ChartMogulMcp:
         ## customers
         @self.mcp.tool(name='list_customers',
                        description='Get a list of customers in your ChartMogul account. '
-                                   'We have a hardcoded limit of 100 customers, '
-                                   'ask but discourage the user if they want more than 100 as this will exhaust AI tokens.'
+                                   'We have a default limit of 20 customers, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
                                    'You can also filter based on data_source_uuid, external_id, '
                                    'status (one of New_Lead, Working_Lead, Qualified_Lead, Unqualified_Lead, Active, '
                                    'Past_Due or Cancelled) and billing system e.g. Stripe, Recurly, Custom, etc.')
         async def list_customers(data_source_uuid: str = None, external_id: str = None, status: str = None,
-                                 system: str = None, limit: int = 100) -> list:
+                                 system: str = None, limit: int = 20) -> list:
             return api_client.list_customers(self.config, data_source_uuid, external_id, status, system, limit)
 
         @self.mcp.tool(name='search_customers',
                        description='Search a list of all customers with the specified email address '
                                    'in your ChartMogul account.'
-                                   'We have a hardcoded limit of 100 customers, '
-                                   'ask but discourage the user if they want more than 100 as this will exhaust AI tokens.')
-        async def search_customers(email: str, limit: int = 100) -> list:
+                                   'We have a default limit of 20 customers, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.')
+        async def search_customers(email: str, limit: int = 20) -> list:
             return api_client.search_customers(self.config, email, limit)
 
         @self.mcp.tool(name='retrieve_customer',
