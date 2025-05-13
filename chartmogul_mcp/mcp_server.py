@@ -1,5 +1,6 @@
 import sys
 import traceback
+import datetime
 from typing import Dict
 from mcp.server.fastmcp import FastMCP
 from chartmogul_mcp import api_client
@@ -25,6 +26,25 @@ class ChartMogulMcp:
     def _register_tools(self):
         """Register MCP tools to interact with ChartMogul API."""
 
+        ## account
+        @self.mcp.tool(name='retrieve_account',
+                       description='Retrieve some useful information about your ChartMogul account.')
+        async def retrieve_account() -> Dict:
+            return api_client.retrieve_account(self.config)
+
+        ## data sources
+        @self.mcp.tool(name='list_sources',
+                       description='Get a list of all data sources in your ChartMogul account.'
+                                   'You can also filter using the data source name or system '
+                                   '(the type of system of the data sources, e.g., Stripe, Recurly, Custom, etc.).')
+        async def list_sources(name: str = None, system: str = None) -> list:
+            return api_client.list_sources(self.config, name, system)
+
+        @self.mcp.tool(name='retrieve_source',
+                       description='Retrieve a data source from your ChartMogul account using its UUID.')
+        async def retrieve_source(uuid: str) -> Dict:
+            return api_client.retrieve_source(self.config, uuid)
+
         ## customers
         @self.mcp.tool(name='list_customers',
                        description='Get a list of customers in your ChartMogul account. '
@@ -32,7 +52,8 @@ class ChartMogulMcp:
                                    'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
                                    'You can also filter based on data_source_uuid, external_id, '
                                    'status (one of New_Lead, Working_Lead, Qualified_Lead, Unqualified_Lead, Active, '
-                                   'Past_Due or Cancelled) and billing system e.g. Stripe, Recurly, Custom, etc.')
+                                   'Past_Due or Cancelled) and system (the type of system of the data sources, '
+                                   'e.g. Stripe, Recurly, Custom, etc.).')
         async def list_customers(data_source_uuid: str = None, external_id: str = None, status: str = None,
                                  system: str = None, limit: int = 20) -> list:
             return api_client.list_customers(self.config, data_source_uuid, external_id, status, system, limit)
@@ -59,6 +80,258 @@ class ChartMogulMcp:
                                    'data dictionary.')
         async def update_customer(uuid: str, data: dict) -> Dict:
             return api_client.update_customer(self.config, uuid, data)
+
+        @self.mcp.tool(name='list_customer_subscriptions',
+                       description='Get a list of all subscriptions with the specified customer uuid '
+                                   'in your ChartMogul account.'
+                                   'We have a default limit of 20 subscriptions, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.')
+        async def list_customer_subscriptions(uuid: str, limit: int = 20) -> list:
+            return api_client.list_customer_subscriptions(self.config, uuid, limit)
+
+        @self.mcp.tool(name='list_customer_activities',
+                       description='Get a list of all activities with the specified customer uuid '
+                                   'in your ChartMogul account.'
+                                   'We have a default limit of 20 activities, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.')
+        async def list_customer_activities(uuid: str, limit: int = 20) -> list:
+            return api_client.list_customer_activities(self.config, uuid, limit)
+
+        ## contacts
+        @self.mcp.tool(name='list_contacts',
+                       description='Get a list of all contacts in your ChartMogul account.'
+                                   'We have a default limit of 20 contacts, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the contact email address and the customer_external_id.')
+        async def list_contacts(email: str = None, customer_external_id: str = None, limit: int = 20) -> list:
+            return api_client.list_contacts(self.config, email, customer_external_id, limit)
+
+        @self.mcp.tool(name='retrieve_contact',
+                       description='Retrieve a contact from your ChartMogul account using its UUID.')
+        async def retrieve_contact(uuid: str) -> Dict:
+            return api_client.retrieve_contact(self.config, uuid)
+
+        @self.mcp.tool(name='update_contact',
+                       description='Update certain modifiable attributes of a contact in your ChartMogul account. '
+                                   'Attributes that can be modified are: first_name, last_name, '
+                                   'position, title, email, phone, linked_in, twitter, notes, custom '
+                                   '(an array containing the custom attributes; each custom attribute must be defined '
+                                   'as an object with a key and value), and should be included in a '
+                                   'data dictionary.')
+        async def update_contact(uuid: str, data: dict) -> Dict:
+            return api_client.update_contact(self.config, uuid, data)
+
+        @self.mcp.tool(name='create_contact',
+                       description='Create a contact in your ChartMogul account. '
+                                   'Attributes that can be added are: customer_uuid (required), data_source_uuid '
+                                   '(required), first_name, last_name, position, title, email, phone, linked_in, '
+                                   'twitter, notes, custom (an array containing the custom attributes; each '
+                                   'custom attribute must be defined as an object with a key and value), '
+                                   'and should be included in a data dictionary.')
+        async def create_contact(data: dict) -> Dict:
+            return api_client.create_contact(self.config, data)
+
+
+        ## customer_notes
+        @self.mcp.tool(name='list_customer_notes',
+                       description='Get a list of all customer notes in your ChartMogul account.'
+                                   'We have a default limit of 20 customer notes, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the customer_uuid and the type (note or call).')
+        async def list_customer_notes(customer_uuid: str = None, type: str = None, limit: int = 20) -> list:
+            return api_client.list_customer_notes(self.config, customer_uuid, type, limit)
+
+        @self.mcp.tool(name='retrieve_customer_note',
+                       description='Retrieve a customer note from your ChartMogul account using its UUID.')
+        async def retrieve_customer_note(uuid: str) -> Dict:
+            return api_client.retrieve_customer_note(self.config, uuid)
+
+        @self.mcp.tool(name='update_customer_note',
+                       description='Update certain modifiable attributes of a customer note in your ChartMogul account. '
+                                   'Attributes that can be modified are: author_email, text, '
+                                   'call_duration (integer; relevant for type call; duration of the call in seconds), '
+                                   'created_at (an ISO 8601-formatted time in the past), '
+                                   'updated_at (an ISO 8601-formatted time in the past), and should be included in a '
+                                   'data dictionary.')
+        async def update_customer_note(uuid: str, data: dict) -> Dict:
+            return api_client.update_customer_note(self.config, uuid, data)
+
+        @self.mcp.tool(name='create_customer_note',
+                       description='Create a customer note in your ChartMogul account. '
+                                   'Attributes that can be modified are: customer_uuid (required), type (required) '
+                                   '(call or note), author_email, text, '
+                                   'call_duration (integer; relevant for type call; duration of the call in seconds), '
+                                   'created_at (an ISO 8601-formatted time in the past), and should be included in a '
+                                   'data dictionary.')
+        async def create_customer_note(data: dict) -> Dict:
+            return api_client.create_customer_note(self.config, data)
+
+
+        ## opportunities
+        @self.mcp.tool(name='list_opportunities',
+                       description='Get a list of all opportunities in your ChartMogul account.'
+                                   'We have a default limit of 20 opportunities, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the customer_uuid, owner (email address of the ChartMogul user '
+                                   'with a CRM seat who is the primary salesperson responsible for this opportunity), '
+                                   'pipeline, pipeline_stage, estimated_close_date_on_or_after '
+                                   '(lower limit of the estimated close date range; an ISO 8601-formatted date) and '
+                                   'estimated_close_date_on_or_before (upper limit of the estimated close date range; '
+                                   'an ISO 8601-formatted date).')
+        async def list_opportunities(customer_uuid: str = None, owner: str = None, pipeline: str = None,
+                                     pipeline_stage: str = None,
+                                     estimated_close_date_on_or_after: datetime.datetime =None,
+                                     estimated_close_date_on_or_before: datetime.datetime =None,
+                                     limit: int = 20) -> list:
+            return api_client.list_opportunities(self.config, customer_uuid, owner, pipeline, pipeline_stage,
+                                                 estimated_close_date_on_or_after, estimated_close_date_on_or_before,
+                                                 limit)
+
+        @self.mcp.tool(name='retrieve_opportunity',
+                       description='Retrieve an opportunity from your ChartMogul account using its UUID.')
+        async def retrieve_opportunity(uuid: str) -> Dict:
+            return api_client.retrieve_opportunity(self.config, uuid)
+
+        @self.mcp.tool(name='update_opportunity',
+                       description='Update certain modifiable attributes of an opportunity in your ChartMogul account. '
+                                   'Attributes that can be modified are: owner, pipeline, pipeline_stage, '
+                                   'estimated_close_date, amount_in_cents, currency (The 3-letter currency code for '
+                                   'the expected close value, e.g. USD, EUR or GBP), type (recurring or one-time), '
+                                   'forecast_category (pipeline, best_case, committed, lost or won), win_likelihood '
+                                   '(0-100), custom (list of custom attributes as key and value pairs) '
+                                   'and should be included in a data dictionary.')
+        async def update_opportunity(uuid: str, data: dict) -> Dict:
+            return api_client.update_opportunity(self.config, uuid, data)
+
+        @self.mcp.tool(name='create_opportunity',
+                       description='Create an opportunity in your ChartMogul account. '
+                                   'Attributes that can be created are: customer_uuid (required), owner (required) '
+                                   '(email address of the ChartMogul user with a CRM seat who is the primary '
+                                   'salesperson responsible for this opportunity), pipeline (required), '
+                                   'pipeline_stage (required), estimated_close_date (required) '
+                                   '(an ISO 8601-formatted date), amount_in_cents (required), currency (required) '
+                                   '(The 3-letter currency code for the expected close value, e.g. USD, EUR or GBP), '
+                                   'type (recurring or one-time), forecast_category (pipeline, best_case, committed, '
+                                   'lost or won), win_likelihood (integer; 0-100), '
+                                   'custom (list of custom attributes as key and value pairs) '
+                                   'and should be included in a data dictionary.')
+        async def create_opportunity(data: dict) -> Dict:
+            return api_client.create_opportunity(self.config, data)
+
+
+        ## plans
+        @self.mcp.tool(name='list_plans',
+                       description='Get a list of all plans in your ChartMogul account.'
+                                   'We have a default limit of 20 plans, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the data_source_uuid, external_id, and system (the billing system '
+                                   'that the plan belongs to, e.g., Stripe, Recurly, Custom).')
+        async def list_plans(data_source_uuid: str = None, external_id: str = None, system: str = None,
+                             limit: int = 20) -> list:
+            return api_client.list_plans(self.config, data_source_uuid, external_id, system, limit)
+
+        @self.mcp.tool(name='retrieve_plan',
+                       description='Retrieve a plan from your ChartMogul account using its UUID.')
+        async def retrieve_plan(uuid: str) -> Dict:
+            return api_client.retrieve_plan(self.config, uuid)
+
+        @self.mcp.tool(name='update_plan',
+                       description='Update certain modifiable attributes of a plan in your ChartMogul account. '
+                                   'Attributes that can be created are: name, interval_count '
+                                   '(frequency of billing interval; accepts integers greater than 0, '
+                                   'e.g., 6 for a half-yearly plan), interval_unit (day, month or year) '
+                                   'and should be included in a data dictionary.')
+        async def update_plan(uuid: str, data: dict) -> Dict:
+            return api_client.update_plan(self.config, uuid, data)
+
+        @self.mcp.tool(name='create_plan',
+                       description='Create a plan in your ChartMogul account. '
+                                   'Attributes that can be created are: data_source_uuid (required), name (required), '
+                                   'interval_count (required) (frequency of billing interval; accepts integers greater than 0, '
+                                   'e.g., 6 for a half-yearly plan), interval_unit (required) (day, month or year), '
+                                   'external_id and should be included in a data dictionary.')
+        async def create_plan(data: dict) -> Dict:
+            return api_client.create_plan(self.config, data)
+
+
+        ## plan groups
+        @self.mcp.tool(name='list_plan_groups',
+                       description='Get a list of all plan groups in your ChartMogul account.'
+                                   'We have a default limit of 20 plan groups, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.')
+        async def list_plan_groups(limit: int = 20) -> list:
+            return api_client.list_plan_groups(self.config, limit)
+
+        ## plan groups
+        @self.mcp.tool(name='list_plan_group_plans',
+                       description='Get a list of all plans in a plan group using its UUID.')
+        async def list_plan_group_plans(uuid: str = None, limit: int = 20) -> list:
+            return api_client.list_plan_group_plans(self.config, uuid, limit)
+
+        @self.mcp.tool(name='retrieve_plan_group',
+                       description='Retrieve a plan group from your ChartMogul account using its UUID.')
+        async def retrieve_plan_group(uuid: str) -> Dict:
+            return api_client.retrieve_plan_group(self.config, uuid)
+
+        @self.mcp.tool(name='update_plan_group',
+                       description='Update certain modifiable attributes of a plan group in your ChartMogul account. '
+                                   'Attributes that can be modified are: name, plans '
+                                   '(array of the uuids of the plans to be added to the plan group) '
+                                   'and should be included in a data dictionary.')
+        async def update_plan_group(uuid: str, data: dict) -> Dict:
+            return api_client.update_plan_group(self.config, uuid, data)
+
+        @self.mcp.tool(name='create_plan_group',
+                       description='Create a plan group in your ChartMogul account. '
+                                   'Attributes that can be created are: name (required), plans (required) '
+                                   '(array of the uuids of the plans to be added to the plan group) '
+                                   'and should be included in a data dictionary.')
+        async def create_plan_group(data: dict) -> Dict:
+            return api_client.create_plan_group(self.config, data)
+
+
+        ## tasks
+        @self.mcp.tool(name='list_tasks',
+                       description='Get a list of all tasks in your ChartMogul account.'
+                                   'We have a default limit of 20 tasks, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the customer_uuid, assignee (email address of the ChartMogul user '
+                                   'with a CRM seat assigned to the task), due_date_on_or_after '
+                                   '(lower limit of the due date range; an ISO 8601-formatted date), '
+                                   'estimated_close_date_on_or_before (upper limit of the due date range; '
+                                   'an ISO 8601-formatted date), completed (true or false).'
+                       )
+        async def list_tasks(customer_uuid: str = None, assignee: str = None,
+                             due_date_on_or_after: datetime.datetime = None,
+                             estimated_close_date_on_or_before: datetime.datetime = None, completed: bool = None,
+                             limit: int = 20) -> list:
+            return api_client.list_tasks(self.config, customer_uuid, assignee, due_date_on_or_after,
+                                         estimated_close_date_on_or_before, completed, limit)
+
+        @self.mcp.tool(name='retrieve_task',
+                       description='Retrieve a task from your ChartMogul account using its UUID.')
+        async def retrieve_task(uuid: str) -> Dict:
+            return api_client.retrieve_task(self.config, uuid)
+
+        @self.mcp.tool(name='update_task',
+                       description='Update certain modifiable attributes of a task in your ChartMogul account. '
+                                   'Attributes that can be modified are: task_details '
+                                   '(up to 255 characters), assignee  (email address of the ChartMogul user '
+                                   'with a CRM seat assigned to the task), due_date (an ISO 8601-formatted date), '
+                                   'completed_at (an ISO 8601-formatted date) '
+                                   'and should be included in a data dictionary.')
+        async def update_task(uuid: str, data: dict) -> Dict:
+            return api_client.update_task(self.config, uuid, data)
+
+        @self.mcp.tool(name='create_task',
+                       description='Create a task in your ChartMogul account. '
+                                   'Attributes that can be created are: customer_uuid (required), task_details (required) '
+                                   '(up to 255 characters), assignee (required) (email address of the ChartMogul user '
+                                   'with a CRM seat assigned to the task), due_date (required) (an ISO 8601-formatted date), '
+                                   'completed_at (an ISO 8601-formatted date)'
+                                   'and should be included in a data dictionary.')
+        async def create_task(data: dict) -> Dict:
+            return api_client.create_task(self.config, data)
 
         ## metrics api
         @self.mcp.tool(name='all_metrics',
