@@ -1,6 +1,8 @@
 import traceback
 import chartmogul
 from chartmogul_mcp import utils
+from chartmogul_mcp.utils import LOGGER
+
 
 def init_chartmogul_config():
     return chartmogul.Config(utils.CHARTMOGUL_TOKEN)
@@ -12,13 +14,12 @@ def retrieve_account(config):
     Retrieve the account information.
 
     """
-    print(f"Retrieve account information.")
+    LOGGER.info(f"Retrieve account information.")
     request = chartmogul.Account.retrieve(config)
     try:
         account = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving customer: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving customer: {str(e)}", exc_info=True)
         return None
     return account
 
@@ -31,15 +32,14 @@ def list_sources(config, name=None, system=None):
 
     Returns: A list of ChartMogul data sources.
     """
-    print(f"List data sources {name}, {system}.")
+    LOGGER.info(f"List data sources {name}, {system}.")
     all_sources = []
     request = chartmogul.DataSource.all(config, name, system)
     try:
         sources = request.get()
         all_sources.extend([entry.__dict__ for entry in sources.entries])
     except Exception as e:
-        print(f"Error listing data sources: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error listing data sources: {str(e)}", exc_info=True)
         return None
     return all_sources
 
@@ -50,13 +50,12 @@ def retrieve_source(config, data_source_uuid):
 
     Returns: The data source.
     """
-    print(f"Retrieve data source for {data_source_uuid}.")
+    LOGGER.info(f"Retrieve data source for {data_source_uuid}.")
     request = chartmogul.DataSource.retrieve(config, data_source_uuid)
     try:
         source = request.get()
     except Exception as e:
-        print(f"Error retrieving data source: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving data source: {str(e)}", exc_info=True)
         return None
     return source
 
@@ -69,7 +68,7 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
         
     Returns: A list of ChartMogul customers.
     """
-    print(f"List customers for {data_source_uuid}, {external_id}, {status}, {system}.")
+    LOGGER.info(f"List customers for {data_source_uuid}, {external_id}, {status}, {system}.")
     all_customers = []
     has_more = True
     cursor = None
@@ -90,8 +89,7 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
             has_more = customers.has_more
             cursor = customers.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul customers: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul customers: {str(e)}", exc_info=True)
             return None
     return all_customers
 
@@ -102,13 +100,12 @@ def retrieve_customer(config, uuid):
 
     Returns: The customer.
     """
-    print(f"Retrieving customer for {uuid}.")
+    LOGGER.info(f"Retrieving customer for {uuid}.")
     request = chartmogul.Customer.retrieve(config, uuid=uuid)
     try:
         customer = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving customer: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving customer: {str(e)}", exc_info=True)
         return None
     return customer
 
@@ -119,13 +116,12 @@ def update_customer(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating customer {uuid}, {data}.")
+    LOGGER.info(f"Updating customer {uuid}, {data}.")
     request = chartmogul.Customer.modify(config, uuid=uuid, data=data)
     try:
         customer = request.get()
     except Exception as e:
-        print(f"Error updating customer: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating customer: {str(e)}", exc_info=True)
         return None
     return customer
 
@@ -136,7 +132,7 @@ def search_customers(config, email, limit=20) -> list:
 
     Returns: A list of ChartMogul customers.
     """
-    print(f"Search customers for {email}.")
+    LOGGER.info(f"Search customers for {email}.")
     all_customers = []
     has_more = True
     cursor = None
@@ -151,8 +147,7 @@ def search_customers(config, email, limit=20) -> list:
             has_more = customers.has_more
             cursor = customers.cursor
         except Exception as e:
-            print(f"Error searching ChartMogul customers: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error searching ChartMogul customers: {str(e)}", exc_info=True)
             return None
     return all_customers
 
@@ -163,7 +158,7 @@ def list_customer_subscriptions(config, uuid=None, limit=20) -> list:
 
     Returns: A list of ChartMogul subscriptions.
     """
-    print(f"List subscriptions for {uuid}.")
+    LOGGER.info(f"List subscriptions for {uuid}.")
     all_subscriptions = []
     has_more = True
     cursor = None
@@ -178,8 +173,7 @@ def list_customer_subscriptions(config, uuid=None, limit=20) -> list:
             has_more = subscriptions.has_more
             cursor = subscriptions.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul subscriptions: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul subscriptions: {str(e)}", exc_info=True)
             return None
     return all_subscriptions
 
@@ -190,7 +184,7 @@ def list_customer_activities(config, uuid=None, limit=20) -> list:
 
     Returns: A list of ChartMogul activities.
     """
-    print(f"List activities for {uuid}.")
+    LOGGER.info(f"List activities for {uuid}.")
     all_activities = []
     has_more = True
     cursor = None
@@ -205,8 +199,7 @@ def list_customer_activities(config, uuid=None, limit=20) -> list:
             has_more = activities.has_more
             cursor = activities.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul activities: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul activities: {str(e)}", exc_info=True)
             return None
     return all_activities
 
@@ -218,7 +211,7 @@ def list_contacts(config, email=None, customer_external_id=None, limit=20) -> li
 
     Returns: A list of ChartMogul contacts.
     """
-    print(f"List contacts for {email}, {customer_external_id}.")
+    LOGGER.info(f"List contacts for {email}, {customer_external_id}.")
     all_contacts = []
     has_more = True
     cursor = None
@@ -237,8 +230,7 @@ def list_contacts(config, email=None, customer_external_id=None, limit=20) -> li
             has_more = contacts.has_more
             cursor = contacts.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul contacts: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul contacts: {str(e)}", exc_info=True)
             return None
     return all_contacts
 
@@ -249,13 +241,12 @@ def retrieve_contact(config, uuid):
 
     Returns: The contact.
     """
-    print(f"Retrieving contact for {uuid}.")
+    LOGGER.info(f"Retrieving contact for {uuid}.")
     request = chartmogul.Contact.retrieve(config, uuid=uuid)
     try:
         contact = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving contact: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving contact: {str(e)}", exc_info=True)
         return None
     return contact
 
@@ -266,13 +257,12 @@ def create_contact(config, data):
 
     Returns:
     """
-    print(f"Creating contact {data}.")
+    LOGGER.info(f"Creating contact {data}.")
     request = chartmogul.Contact.create(config, data=data)
     try:
         contact = request.get()
     except Exception as e:
-        print(f"Error creating contact: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error creating contact: {str(e)}", exc_info=True)
         return None
     return contact
 
@@ -283,13 +273,12 @@ def update_contact(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating contact {uuid}, {data}.")
+    LOGGER.info(f"Updating contact {uuid}, {data}.")
     request = chartmogul.Contact.modify(config, uuid=uuid, data=data)
     try:
         contact = request.get()
     except Exception as e:
-        print(f"Error updating contact: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating contact: {str(e)}", exc_info=True)
         return None
     return contact
 
@@ -302,7 +291,7 @@ def list_customer_notes(config, customer_uuid=None, type=None, author_email=None
 
     Returns: A list of ChartMogul customer_notes.
     """
-    print(f"List customer_notes for {customer_uuid}, {type}, {author_email}.")
+    LOGGER.info(f"List customer_notes for {customer_uuid}, {type}, {author_email}.")
     all_customer_notes = []
     has_more = True
     cursor = None
@@ -322,8 +311,7 @@ def list_customer_notes(config, customer_uuid=None, type=None, author_email=None
             has_more = customer_notes.has_more
             cursor = customer_notes.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul customer_notes: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul customer_notes: {str(e)}", exc_info=True)
             return None
     return all_customer_notes
 
@@ -334,13 +322,12 @@ def retrieve_customer_note(config, uuid):
 
     Returns: The customer_note.
     """
-    print(f"Retrieving customer_note for {uuid}.")
+    LOGGER.info(f"Retrieving customer_note for {uuid}.")
     request = chartmogul.CustomerNote.retrieve(config, uuid=uuid)
     try:
         customer_note = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving customer_note: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving customer_note: {str(e)}", exc_info=True)
         return None
     return customer_note
 
@@ -351,13 +338,12 @@ def create_customer_note(config, data):
 
     Returns:
     """
-    print(f"Creating contact {data}.")
+    LOGGER.info(f"Creating contact {data}.")
     request = chartmogul.CustomerNote.create(config, data=data)
     try:
         customer_note = request.get()
     except Exception as e:
-        print(f"Error creating contact: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error creating contact: {str(e)}", exc_info=True)
         return None
     return customer_note
 
@@ -368,13 +354,12 @@ def update_customer_note(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating customer_note {uuid}, {data}.")
+    LOGGER.info(f"Updating customer_note {uuid}, {data}.")
     request = chartmogul.CustomerNote.patch(config, uuid=uuid, data=data)
     try:
         customer_note = request.get()
     except Exception as e:
-        print(f"Error updating customer_note: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating customer_note: {str(e)}", exc_info=True)
         return None
     return customer_note
 
@@ -389,7 +374,7 @@ def list_opportunities(config, customer_uuid=None, owner=None, pipeline=None, pi
 
     Returns: A list of ChartMogul opportunities.
     """
-    print(f"List opportunities for {customer_uuid}, {owner}, {pipeline}, {pipeline_stage}, "
+    LOGGER.info(f"List opportunities for {customer_uuid}, {owner}, {pipeline}, {pipeline_stage}, "
           f"{estimated_close_date_on_or_after}, {estimated_close_date_on_or_before}.")
     all_opportunities = []
     has_more = True
@@ -413,8 +398,7 @@ def list_opportunities(config, customer_uuid=None, owner=None, pipeline=None, pi
             has_more = opportunities.has_more
             cursor = opportunities.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul opportunities: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul opportunities: {str(e)}", exc_info=True)
             return None
     return all_opportunities
 
@@ -425,13 +409,12 @@ def retrieve_opportunity(config, uuid):
 
     Returns: The opportunity.
     """
-    print(f"Retrieving opportunity for {uuid}.")
+    LOGGER.info(f"Retrieving opportunity for {uuid}.")
     request = chartmogul.Opportunity.retrieve(config, uuid=uuid)
     try:
         opportunity = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving opportunity: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving opportunity: {str(e)}", exc_info=True)
         return None
     return opportunity
 
@@ -442,13 +425,12 @@ def create_opportunity(config, data):
 
     Returns:
     """
-    print(f"Creating opportunity {data}.")
+    LOGGER.info(f"Creating opportunity {data}.")
     request = chartmogul.Opportunity.create(config, data=data)
     try:
         opportunity = request.get()
     except Exception as e:
-        print(f"Error creating opportunity: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error creating opportunity: {str(e)}", exc_info=True)
         return None
     return opportunity
 
@@ -459,13 +441,12 @@ def update_opportunity(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating opportunity {uuid}, {data}.")
+    LOGGER.info(f"Updating opportunity {uuid}, {data}.")
     request = chartmogul.Opportunity.patch(config, uuid=uuid, data=data)
     try:
         opportunity = request.get()
     except Exception as e:
-        print(f"Error updating opportunity: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating opportunity: {str(e)}", exc_info=True)
         return None
     return opportunity
 
@@ -478,7 +459,7 @@ def list_plans(config, data_source_uuid=None, external_id=None, system=None, lim
 
     Returns: A list of ChartMogul plans.
     """
-    print(f"List plans for {data_source_uuid}, {external_id}, {system}.")
+    LOGGER.info(f"List plans for {data_source_uuid}, {external_id}, {system}.")
     all_plans = []
     has_more = True
     cursor = None
@@ -498,8 +479,7 @@ def list_plans(config, data_source_uuid=None, external_id=None, system=None, lim
             has_more = plans.has_more
             cursor = plans.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul plans: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul plans: {str(e)}", exc_info=True)
             return None
     return all_plans
 
@@ -510,13 +490,12 @@ def retrieve_plan(config, uuid):
 
     Returns: The plan.
     """
-    print(f"Retrieving plan for {uuid}.")
+    LOGGER.info(f"Retrieving plan for {uuid}.")
     request = chartmogul.Plan.retrieve(config, uuid=uuid)
     try:
         plan = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving plan: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving plan: {str(e)}", exc_info=True)
         return None
     return plan
 
@@ -527,13 +506,12 @@ def create_plan(config, data):
 
     Returns:
     """
-    print(f"Creating plan {data}.")
+    LOGGER.info(f"Creating plan {data}.")
     request = chartmogul.Plan.create(config, data=data)
     try:
         plan = request.get()
     except Exception as e:
-        print(f"Error creating plan: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error creating plan: {str(e)}", exc_info=True)
         return None
     return plan
 
@@ -544,13 +522,12 @@ def update_plan(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating plan {uuid}, {data}.")
+    LOGGER.info(f"Updating plan {uuid}, {data}.")
     request = chartmogul.Plan.modify(config, uuid=uuid, data=data)
     try:
         plan = request.get()
     except Exception as e:
-        print(f"Error updating plan: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating plan: {str(e)}", exc_info=True)
         return None
     return plan
 
@@ -563,7 +540,7 @@ def list_plan_groups(config, limit=20) -> list:
 
     Returns: A list of ChartMogul plan groups.
     """
-    print(f"List plan groups.")
+    LOGGER.info(f"List plan groups.")
     all_plan_groups = []
     has_more = True
     cursor = None
@@ -578,8 +555,7 @@ def list_plan_groups(config, limit=20) -> list:
             has_more = plan_groups.has_more
             cursor = plan_groups.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul plan groups: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul plan groups: {str(e)}", exc_info=True)
             return None
     return all_plan_groups
 
@@ -590,7 +566,7 @@ def list_plan_group_plans(config, uuid, limit=20) -> list:
 
     Returns: A list of ChartMogul plans of a plan group.
     """
-    print(f"List plans of a plan group {uuid}.")
+    LOGGER.info(f"List plans of a plan group {uuid}.")
     all_plans = []
     has_more = True
     cursor = None
@@ -605,8 +581,7 @@ def list_plan_group_plans(config, uuid, limit=20) -> list:
             has_more = plans.has_more
             cursor = plans.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul plans: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul plans: {str(e)}", exc_info=True)
             return None
     return all_plans
 
@@ -617,13 +592,12 @@ def retrieve_plan_group(config, uuid):
 
     Returns: The plan.
     """
-    print(f"Retrieving plan group for {uuid}.")
+    LOGGER.info(f"Retrieving plan group for {uuid}.")
     request = chartmogul.PlanGroup.retrieve(config, uuid=uuid)
     try:
         plan_group = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving plan group: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving plan group: {str(e)}", exc_info=True)
         return None
     return plan_group
 
@@ -634,13 +608,12 @@ def create_plan_group(config, data):
 
     Returns:
     """
-    print(f"Creating plan group {data}.")
+    LOGGER.info(f"Creating plan group {data}.")
     request = chartmogul.PlanGroup.create(config, data=data)
     try:
         plan_group = request.get()
     except Exception as e:
-        print(f"Error creating plan group: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error creating plan group: {str(e)}", exc_info=True)
         return None
     return plan_group
 
@@ -651,13 +624,12 @@ def update_plan_group(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating plan group {uuid}, {data}.")
+    LOGGER.info(f"Updating plan group {uuid}, {data}.")
     request = chartmogul.PlanGroup.modify(config, uuid=uuid, data=data)
     try:
         plan_group = request.get()
     except Exception as e:
-        print(f"Error updating plan group: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating plan group: {str(e)}", exc_info=True)
         return None
     return plan_group
 
@@ -672,7 +644,7 @@ def list_tasks(config, customer_uuid=None, assignee=None, due_date_on_or_after=N
 
     Returns: A list of ChartMogul tasks.
     """
-    print(f"List tasks for {customer_uuid}, {assignee}, {due_date_on_or_after}, {estimated_close_date_on_or_before}, "
+    LOGGER.info(f"List tasks for {customer_uuid}, {assignee}, {due_date_on_or_after}, {estimated_close_date_on_or_before}, "
           f"{completed}.")
     all_tasks = []
     has_more = True
@@ -695,8 +667,7 @@ def list_tasks(config, customer_uuid=None, assignee=None, due_date_on_or_after=N
             has_more = tasks.has_more
             cursor = tasks.cursor
         except Exception as e:
-            print(f"Error fetching ChartMogul tasks: {str(e)}")
-            traceback.print_exc()
+            LOGGER.error(f"Error fetching ChartMogul tasks: {str(e)}", exc_info=True)
             return None
     return all_tasks
 
@@ -707,13 +678,12 @@ def retrieve_task(config, uuid):
 
     Returns: The task.
     """
-    print(f"Retrieving task for {uuid}.")
+    LOGGER.info(f"Retrieving task for {uuid}.")
     request = chartmogul.Task.retrieve(config, uuid=uuid)
     try:
         task = request.get().__dict__
     except Exception as e:
-        print(f"Error retrieving task: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error retrieving task: {str(e)}", exc_info=True)
         return None
     return task
 
@@ -724,13 +694,12 @@ def create_task(config, data):
 
     Returns:
     """
-    print(f"Creating task {data}.")
+    LOGGER.info(f"Creating task {data}.")
     request = chartmogul.Task.create(config, data=data)
     try:
         task = request.get()
     except Exception as e:
-        print(f"Error creating task: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error creating task: {str(e)}", exc_info=True)
         return None
     return task
 
@@ -741,18 +710,14 @@ def update_task(config, uuid, data):
 
     Returns:
     """
-    print(f"Updating task {uuid}, {data}.")
+    LOGGER.info(f"Updating task {uuid}, {data}.")
     request = chartmogul.Task.patch(config, uuid=uuid, data=data)
     try:
         task = request.get()
     except Exception as e:
-        print(f"Error updating task: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error updating task: {str(e)}", exc_info=True)
         return None
     return task
-
-
-
 
 
 ## Metrics API Endpoints
@@ -763,7 +728,7 @@ def all_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
 
     Returns: A list of all metrics.
     """
-    print(f" Fetching all metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching all metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.all(config,
                                      start_date=start_date,
                                      end_date=end_date,
@@ -775,8 +740,7 @@ def all_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
         metrics = request.get()
         all_metrics = [entry.__dict__ for entry in metrics.entries]
     except Exception as e:
-        print(f"Error fetching all metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching all metrics: {str(e)}", exc_info=True)
         return None
     return all_metrics
 
@@ -787,7 +751,7 @@ def mrr_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
 
     Returns: A list of MRR metrics.
     """
-    print(f" Fetching MRR metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching MRR metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.mrr(config,
                                      start_date=start_date,
                                      end_date=end_date,
@@ -799,8 +763,7 @@ def mrr_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
         mrr = request.get()
         all_mrr = [entry.__dict__ for entry in mrr.entries]
     except Exception as e:
-        print(f"Error fetching MRR metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching MRR metrics: {str(e)}", exc_info=True)
         return None
     return all_mrr
 
@@ -811,7 +774,7 @@ def arr_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
 
     Returns: A list of ARR metrics.
     """
-    print(f" Fetching ARR metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching ARR metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.arr(config,
                                      start_date=start_date,
                                      end_date=end_date,
@@ -823,8 +786,7 @@ def arr_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
         arr = request.get()
         all_arr = [entry.__dict__ for entry in arr.entries]
     except Exception as e:
-        print(f"Error fetching ARR metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching ARR metrics: {str(e)}", exc_info=True)
         return None
     return all_arr
 
@@ -835,7 +797,7 @@ def arpa_metrics(config, start_date, end_date, interval, geo=None, plans=None) -
 
     Returns: A list of ARPA metrics.
     """
-    print(f" Fetching ARPA metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching ARPA metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.arpa(config,
                                       start_date=start_date,
                                       end_date=end_date,
@@ -847,8 +809,7 @@ def arpa_metrics(config, start_date, end_date, interval, geo=None, plans=None) -
         arpa = request.get()
         all_arpa = [entry.__dict__ for entry in arpa.entries]
     except Exception as e:
-        print(f"Error fetching ARPA metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching ARPA metrics: {str(e)}", exc_info=True)
         return None
     return all_arpa
 
@@ -859,7 +820,7 @@ def asp_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
 
     Returns: A list of ASP metrics.
     """
-    print(f" Fetching ASP metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching ASP metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.asp(config,
                                      start_date=start_date,
                                      end_date=end_date,
@@ -871,8 +832,7 @@ def asp_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
         asp = request.get()
         all_asp = [entry.__dict__ for entry in asp.entries]
     except Exception as e:
-        print(f"Error fetching ASP metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching ASP metrics: {str(e)}", exc_info=True)
         return None
     return all_asp
 
@@ -883,7 +843,7 @@ def customer_count_metrics(config, start_date, end_date, interval, geo=None, pla
 
     Returns: A list of Customer count metrics.
     """
-    print(f" Fetching Customer count metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching Customer count metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.customer_count(config,
                                                 start_date=start_date,
                                                 end_date=end_date,
@@ -895,8 +855,7 @@ def customer_count_metrics(config, start_date, end_date, interval, geo=None, pla
         customer_count = request.get()
         all_customer_count = [entry.__dict__ for entry in customer_count.entries]
     except Exception as e:
-        print(f"Error fetching Customer count metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching Customer count metrics: {str(e)}", exc_info=True)
         return None
     return all_customer_count
 
@@ -907,7 +866,7 @@ def customer_churn_rate_metrics(config, start_date, end_date, interval, geo=None
 
     Returns: A list of Customer churn rate metrics.
     """
-    print(f" Fetching Customer churn rate metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching Customer churn rate metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.customer_churn_rate(config,
                                                      start_date=start_date,
                                                      end_date=end_date,
@@ -919,8 +878,7 @@ def customer_churn_rate_metrics(config, start_date, end_date, interval, geo=None
         customer_churn_rate = request.get()
         all_customer_churn_rate = [entry.__dict__ for entry in customer_churn_rate.entries]
     except Exception as e:
-        print(f"Error fetching Customer churn rate metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching Customer churn rate metrics: {str(e)}", exc_info=True)
         return None
     return all_customer_churn_rate
 
@@ -931,7 +889,7 @@ def mrr_churn_rate_metrics(config, start_date, end_date, interval, geo=None, pla
 
     Returns: A list of MRR churn rate metrics.
     """
-    print(f" Fetching MRR churn rate metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching MRR churn rate metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.mrr_churn_rate(config,
                                                 start_date=start_date,
                                                 end_date=end_date,
@@ -943,8 +901,7 @@ def mrr_churn_rate_metrics(config, start_date, end_date, interval, geo=None, pla
         mrr_churn_rate = request.get()
         all_mrr_churn_rate = [entry.__dict__ for entry in mrr_churn_rate.entries]
     except Exception as e:
-        print(f"Error fetching MRR churn rate metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching MRR churn rate metrics: {str(e)}", exc_info=True)
         return None
     return all_mrr_churn_rate
 
@@ -955,7 +912,7 @@ def ltv_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
 
     Returns: A list of LTV metrics.
     """
-    print(f" Fetching LTV metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
+    LOGGER.info(f"Fetching LTV metrics for {start_date}, {end_date}, {interval}, {geo}, {plans}.")
     request = chartmogul.Metrics.ltv(config,
                                      start_date=start_date,
                                      end_date=end_date,
@@ -967,7 +924,6 @@ def ltv_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
         ltv = request.get()
         all_ltv = [entry.__dict__ for entry in ltv.entries]
     except Exception as e:
-        print(f"Error fetching LTV metrics: {str(e)}")
-        traceback.print_exc()
+        LOGGER.error(f"Error fetching LTV metrics: {str(e)}", exc_info=True)
         return None
     return all_ltv
