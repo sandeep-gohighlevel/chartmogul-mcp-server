@@ -1,4 +1,4 @@
-import traceback
+import datetime
 import chartmogul
 from chartmogul_mcp import utils
 from chartmogul_mcp.utils import LOGGER
@@ -17,7 +17,7 @@ def retrieve_account(config):
     LOGGER.info(f"Retrieve account information.")
     request = chartmogul.Account.retrieve(config)
     try:
-        account = request.get().__dict__
+        account = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving customer: {str(e)}", exc_info=True)
         return None
@@ -37,7 +37,7 @@ def list_sources(config, name=None, system=None):
     request = chartmogul.DataSource.all(config, name, system)
     try:
         sources = request.get()
-        all_sources.extend([entry.__dict__ for entry in sources.entries])
+        all_sources.extend([parse_object(entry) for entry in sources.entries])
     except Exception as e:
         LOGGER.error(f"Error listing data sources: {str(e)}", exc_info=True)
         return None
@@ -53,7 +53,7 @@ def retrieve_source(config, data_source_uuid):
     LOGGER.info(f"Retrieve data source for {data_source_uuid}.")
     request = chartmogul.DataSource.retrieve(config, data_source_uuid)
     try:
-        source = request.get()
+        source = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving data source: {str(e)}", exc_info=True)
         return None
@@ -84,7 +84,7 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
                                           per_page=per_page)
         try:
             customers = request.get()
-            all_customers.extend([entry.__dict__ for entry in customers.entries])
+            all_customers.extend([parse_object(entry) for entry in customers.entries])
             total += per_page
             has_more = customers.has_more
             cursor = customers.cursor
@@ -103,7 +103,7 @@ def retrieve_customer(config, uuid):
     LOGGER.info(f"Retrieving customer for {uuid}.")
     request = chartmogul.Customer.retrieve(config, uuid=uuid)
     try:
-        customer = request.get().__dict__
+        customer = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving customer: {str(e)}", exc_info=True)
         return None
@@ -119,7 +119,7 @@ def update_customer(config, uuid, data):
     LOGGER.info(f"Updating customer {uuid}, {data}.")
     request = chartmogul.Customer.modify(config, uuid=uuid, data=data)
     try:
-        customer = request.get()
+        customer = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating customer: {str(e)}", exc_info=True)
         return None
@@ -142,7 +142,7 @@ def search_customers(config, email, limit=20) -> list:
         request = chartmogul.Customer.search(config, email=email, cursor=cursor, per_page=per_page)
         try:
             customers = request.get()
-            all_customers.extend([entry.__dict__ for entry in customers.entries])
+            all_customers.extend([parse_object(entry) for entry in customers.entries])
             total += per_page
             has_more = customers.has_more
             cursor = customers.cursor
@@ -168,7 +168,7 @@ def list_customer_subscriptions(config, uuid=None, limit=20) -> list:
         request = chartmogul.CustomerSubscription.all(config, uuid=uuid, cursor=cursor, per_page=per_page)
         try:
             subscriptions = request.get()
-            all_subscriptions.extend([entry.__dict__ for entry in subscriptions.entries])
+            all_subscriptions.extend([parse_object(entry) for entry in subscriptions.entries])
             total += per_page
             has_more = subscriptions.has_more
             cursor = subscriptions.cursor
@@ -194,7 +194,7 @@ def list_customer_activities(config, uuid=None, limit=20) -> list:
         request = chartmogul.CustomerActivity.all(config, uuid=uuid, cursor=cursor, per_page=per_page)
         try:
             activities = request.get()
-            all_activities.extend([entry.__dict__ for entry in activities.entries])
+            all_activities.extend([parse_object(entry) for entry in activities.entries])
             total += per_page
             has_more = activities.has_more
             cursor = activities.cursor
@@ -225,7 +225,7 @@ def list_contacts(config, email=None, customer_external_id=None, limit=20) -> li
                                          per_page=per_page)
         try:
             contacts = request.get()
-            all_contacts.extend([entry.__dict__ for entry in contacts.entries])
+            all_contacts.extend([parse_object(entry) for entry in contacts.entries])
             total += per_page
             has_more = contacts.has_more
             cursor = contacts.cursor
@@ -244,7 +244,7 @@ def retrieve_contact(config, uuid):
     LOGGER.info(f"Retrieving contact for {uuid}.")
     request = chartmogul.Contact.retrieve(config, uuid=uuid)
     try:
-        contact = request.get().__dict__
+        contact = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving contact: {str(e)}", exc_info=True)
         return None
@@ -260,7 +260,7 @@ def create_contact(config, data):
     LOGGER.info(f"Creating contact {data}.")
     request = chartmogul.Contact.create(config, data=data)
     try:
-        contact = request.get()
+        contact = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error creating contact: {str(e)}", exc_info=True)
         return None
@@ -276,7 +276,7 @@ def update_contact(config, uuid, data):
     LOGGER.info(f"Updating contact {uuid}, {data}.")
     request = chartmogul.Contact.modify(config, uuid=uuid, data=data)
     try:
-        contact = request.get()
+        contact = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating contact: {str(e)}", exc_info=True)
         return None
@@ -306,7 +306,7 @@ def list_customer_notes(config, customer_uuid=None, type=None, author_email=None
                                               per_page=per_page)
         try:
             customer_notes = request.get()
-            all_customer_notes.extend([entry.__dict__ for entry in customer_notes.entries])
+            all_customer_notes.extend([parse_object(entry) for entry in customer_notes.entries])
             total += per_page
             has_more = customer_notes.has_more
             cursor = customer_notes.cursor
@@ -325,7 +325,7 @@ def retrieve_customer_note(config, uuid):
     LOGGER.info(f"Retrieving customer_note for {uuid}.")
     request = chartmogul.CustomerNote.retrieve(config, uuid=uuid)
     try:
-        customer_note = request.get().__dict__
+        customer_note = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving customer_note: {str(e)}", exc_info=True)
         return None
@@ -341,7 +341,7 @@ def create_customer_note(config, data):
     LOGGER.info(f"Creating contact {data}.")
     request = chartmogul.CustomerNote.create(config, data=data)
     try:
-        customer_note = request.get()
+        customer_note = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error creating contact: {str(e)}", exc_info=True)
         return None
@@ -357,7 +357,7 @@ def update_customer_note(config, uuid, data):
     LOGGER.info(f"Updating customer_note {uuid}, {data}.")
     request = chartmogul.CustomerNote.patch(config, uuid=uuid, data=data)
     try:
-        customer_note = request.get()
+        customer_note = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating customer_note: {str(e)}", exc_info=True)
         return None
@@ -393,7 +393,7 @@ def list_opportunities(config, customer_uuid=None, owner=None, pipeline=None, pi
                                              per_page=per_page)
         try:
             opportunities = request.get()
-            all_opportunities.extend([entry.__dict__ for entry in opportunities.entries])
+            all_opportunities.extend([parse_object(entry) for entry in opportunities.entries])
             total += per_page
             has_more = opportunities.has_more
             cursor = opportunities.cursor
@@ -412,7 +412,7 @@ def retrieve_opportunity(config, uuid):
     LOGGER.info(f"Retrieving opportunity for {uuid}.")
     request = chartmogul.Opportunity.retrieve(config, uuid=uuid)
     try:
-        opportunity = request.get().__dict__
+        opportunity = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving opportunity: {str(e)}", exc_info=True)
         return None
@@ -428,7 +428,7 @@ def create_opportunity(config, data):
     LOGGER.info(f"Creating opportunity {data}.")
     request = chartmogul.Opportunity.create(config, data=data)
     try:
-        opportunity = request.get()
+        opportunity = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error creating opportunity: {str(e)}", exc_info=True)
         return None
@@ -444,7 +444,7 @@ def update_opportunity(config, uuid, data):
     LOGGER.info(f"Updating opportunity {uuid}, {data}.")
     request = chartmogul.Opportunity.patch(config, uuid=uuid, data=data)
     try:
-        opportunity = request.get()
+        opportunity = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating opportunity: {str(e)}", exc_info=True)
         return None
@@ -474,7 +474,7 @@ def list_plans(config, data_source_uuid=None, external_id=None, system=None, lim
                                       per_page=per_page)
         try:
             plans = request.get()
-            all_plans.extend([entry.__dict__ for entry in plans.entries])
+            all_plans.extend([parse_object(entry) for entry in plans.entries])
             total += per_page
             has_more = plans.has_more
             cursor = plans.cursor
@@ -493,7 +493,7 @@ def retrieve_plan(config, uuid):
     LOGGER.info(f"Retrieving plan for {uuid}.")
     request = chartmogul.Plan.retrieve(config, uuid=uuid)
     try:
-        plan = request.get().__dict__
+        plan = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving plan: {str(e)}", exc_info=True)
         return None
@@ -509,7 +509,7 @@ def create_plan(config, data):
     LOGGER.info(f"Creating plan {data}.")
     request = chartmogul.Plan.create(config, data=data)
     try:
-        plan = request.get()
+        plan = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error creating plan: {str(e)}", exc_info=True)
         return None
@@ -525,7 +525,7 @@ def update_plan(config, uuid, data):
     LOGGER.info(f"Updating plan {uuid}, {data}.")
     request = chartmogul.Plan.modify(config, uuid=uuid, data=data)
     try:
-        plan = request.get()
+        plan = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating plan: {str(e)}", exc_info=True)
         return None
@@ -550,7 +550,7 @@ def list_plan_groups(config, limit=20) -> list:
         request = chartmogul.PlanGroup.all(config, cursor=cursor, per_page=per_page)
         try:
             plan_groups = request.get()
-            all_plan_groups.extend([entry.__dict__ for entry in plan_groups.entries])
+            all_plan_groups.extend([parse_object(entry) for entry in plan_groups.entries])
             total += per_page
             has_more = plan_groups.has_more
             cursor = plan_groups.cursor
@@ -576,7 +576,7 @@ def list_plan_group_plans(config, uuid, limit=20) -> list:
         request = chartmogul.PlanGroup.all(config, uuid=uuid, cursor=cursor, per_page=per_page)
         try:
             plans = request.get()
-            all_plans.extend([entry.__dict__ for entry in plans.entries])
+            all_plans.extend([parse_object(entry) for entry in plans.entries])
             total += per_page
             has_more = plans.has_more
             cursor = plans.cursor
@@ -595,7 +595,7 @@ def retrieve_plan_group(config, uuid):
     LOGGER.info(f"Retrieving plan group for {uuid}.")
     request = chartmogul.PlanGroup.retrieve(config, uuid=uuid)
     try:
-        plan_group = request.get().__dict__
+        plan_group = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving plan group: {str(e)}", exc_info=True)
         return None
@@ -611,7 +611,7 @@ def create_plan_group(config, data):
     LOGGER.info(f"Creating plan group {data}.")
     request = chartmogul.PlanGroup.create(config, data=data)
     try:
-        plan_group = request.get()
+        plan_group = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error creating plan group: {str(e)}", exc_info=True)
         return None
@@ -627,7 +627,7 @@ def update_plan_group(config, uuid, data):
     LOGGER.info(f"Updating plan group {uuid}, {data}.")
     request = chartmogul.PlanGroup.modify(config, uuid=uuid, data=data)
     try:
-        plan_group = request.get()
+        plan_group = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating plan group: {str(e)}", exc_info=True)
         return None
@@ -662,7 +662,7 @@ def list_tasks(config, customer_uuid=None, assignee=None, due_date_on_or_after=N
                                       per_page=per_page)
         try:
             tasks = request.get()
-            all_tasks.extend([entry.__dict__ for entry in tasks.entries])
+            all_tasks.extend([parse_object(entry) for entry in tasks.entries])
             total += per_page
             has_more = tasks.has_more
             cursor = tasks.cursor
@@ -681,7 +681,7 @@ def retrieve_task(config, uuid):
     LOGGER.info(f"Retrieving task for {uuid}.")
     request = chartmogul.Task.retrieve(config, uuid=uuid)
     try:
-        task = request.get().__dict__
+        task = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error retrieving task: {str(e)}", exc_info=True)
         return None
@@ -697,7 +697,7 @@ def create_task(config, data):
     LOGGER.info(f"Creating task {data}.")
     request = chartmogul.Task.create(config, data=data)
     try:
-        task = request.get()
+        task = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error creating task: {str(e)}", exc_info=True)
         return None
@@ -713,7 +713,7 @@ def update_task(config, uuid, data):
     LOGGER.info(f"Updating task {uuid}, {data}.")
     request = chartmogul.Task.patch(config, uuid=uuid, data=data)
     try:
-        task = request.get()
+        task = parse_object(request.get())
     except Exception as e:
         LOGGER.error(f"Error updating task: {str(e)}", exc_info=True)
         return None
@@ -738,7 +738,7 @@ def all_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
                                      )
     try:
         metrics = request.get()
-        all_metrics = [entry.__dict__ for entry in metrics.entries]
+        all_metrics = [parse_object(entry) for entry in metrics.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching all metrics: {str(e)}", exc_info=True)
         return None
@@ -761,7 +761,7 @@ def mrr_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
                                      )
     try:
         mrr = request.get()
-        all_mrr = [entry.__dict__ for entry in mrr.entries]
+        all_mrr = [parse_object(entry) for entry in mrr.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching MRR metrics: {str(e)}", exc_info=True)
         return None
@@ -784,7 +784,7 @@ def arr_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
                                      )
     try:
         arr = request.get()
-        all_arr = [entry.__dict__ for entry in arr.entries]
+        all_arr = [parse_object(entry) for entry in arr.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching ARR metrics: {str(e)}", exc_info=True)
         return None
@@ -807,7 +807,7 @@ def arpa_metrics(config, start_date, end_date, interval, geo=None, plans=None) -
                                       )
     try:
         arpa = request.get()
-        all_arpa = [entry.__dict__ for entry in arpa.entries]
+        all_arpa = [parse_object(entry) for entry in arpa.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching ARPA metrics: {str(e)}", exc_info=True)
         return None
@@ -830,7 +830,7 @@ def asp_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
                                      )
     try:
         asp = request.get()
-        all_asp = [entry.__dict__ for entry in asp.entries]
+        all_asp = [parse_object(entry) for entry in asp.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching ASP metrics: {str(e)}", exc_info=True)
         return None
@@ -853,7 +853,7 @@ def customer_count_metrics(config, start_date, end_date, interval, geo=None, pla
                                                 )
     try:
         customer_count = request.get()
-        all_customer_count = [entry.__dict__ for entry in customer_count.entries]
+        all_customer_count = [parse_object(entry) for entry in customer_count.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching Customer count metrics: {str(e)}", exc_info=True)
         return None
@@ -876,7 +876,7 @@ def customer_churn_rate_metrics(config, start_date, end_date, interval, geo=None
                                                      )
     try:
         customer_churn_rate = request.get()
-        all_customer_churn_rate = [entry.__dict__ for entry in customer_churn_rate.entries]
+        all_customer_churn_rate = [parse_object(entry) for entry in customer_churn_rate.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching Customer churn rate metrics: {str(e)}", exc_info=True)
         return None
@@ -899,7 +899,7 @@ def mrr_churn_rate_metrics(config, start_date, end_date, interval, geo=None, pla
                                                 )
     try:
         mrr_churn_rate = request.get()
-        all_mrr_churn_rate = [entry.__dict__ for entry in mrr_churn_rate.entries]
+        all_mrr_churn_rate = [parse_object(entry) for entry in mrr_churn_rate.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching MRR churn rate metrics: {str(e)}", exc_info=True)
         return None
@@ -922,8 +922,22 @@ def ltv_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
                                      )
     try:
         ltv = request.get()
-        all_ltv = [entry.__dict__ for entry in ltv.entries]
+        all_ltv = [parse_object(entry) for entry in ltv.entries]
     except Exception as e:
         LOGGER.error(f"Error fetching LTV metrics: {str(e)}", exc_info=True)
         return None
     return all_ltv
+
+
+def parse_object(obj):
+    if isinstance(obj, datetime.datetime) or isinstance(obj, datetime.date):
+        return obj.isoformat() 
+    elif hasattr(obj, '__dict__'):
+        result = {}
+        for key, value in obj.__dict__.items():
+            result[key] = parse_object(value)
+        return result
+    elif isinstance(obj, list):
+        return [parse_object(item) for item in obj]
+    else:
+        return obj
