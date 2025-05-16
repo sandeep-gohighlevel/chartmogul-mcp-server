@@ -34,10 +34,10 @@ def list_sources(config, name=None, system=None):
     """
     LOGGER.info(f"List data sources {name}, {system}.")
     all_sources = []
-    request = chartmogul.DataSource.all(config, name, system)
+    request = chartmogul.DataSource.all(config, name=name, system=system)
     try:
         sources = request.get()
-        all_sources.extend([parse_object(entry) for entry in sources.entries])
+        all_sources.extend([parse_object(entry) for entry in sources.data_sources])
     except Exception as e:
         LOGGER.error(f"Error listing data sources: {str(e)}", exc_info=True)
         return None
@@ -51,7 +51,7 @@ def retrieve_source(config, data_source_uuid):
     Returns: The data source.
     """
     LOGGER.info(f"Retrieve data source for {data_source_uuid}.")
-    request = chartmogul.DataSource.retrieve(config, data_source_uuid)
+    request = chartmogul.DataSource.retrieve(config, uuid=data_source_uuid)
     try:
         source = parse_object(request.get())
     except Exception as e:
@@ -474,7 +474,7 @@ def list_plans(config, data_source_uuid=None, external_id=None, system=None, lim
                                       per_page=per_page)
         try:
             plans = request.get()
-            all_plans.extend([parse_object(entry) for entry in plans.entries])
+            all_plans.extend([parse_object(entry) for entry in plans.plans])
             total += per_page
             has_more = plans.has_more
             cursor = plans.cursor
@@ -550,7 +550,7 @@ def list_plan_groups(config, limit=20) -> list:
         request = chartmogul.PlanGroup.all(config, cursor=cursor, per_page=per_page)
         try:
             plan_groups = request.get()
-            all_plan_groups.extend([parse_object(entry) for entry in plan_groups.entries])
+            all_plan_groups.extend([parse_object(entry) for entry in plan_groups.plan_groups])
             total += per_page
             has_more = plan_groups.has_more
             cursor = plan_groups.cursor
@@ -576,7 +576,7 @@ def list_plan_group_plans(config, uuid, limit=20) -> list:
         request = chartmogul.PlanGroup.all(config, uuid=uuid, cursor=cursor, per_page=per_page)
         try:
             plans = request.get()
-            all_plans.extend([parse_object(entry) for entry in plans.entries])
+            all_plans.extend([parse_object(entry) for entry in plans.plans])
             total += per_page
             has_more = plans.has_more
             cursor = plans.cursor
