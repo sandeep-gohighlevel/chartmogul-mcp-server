@@ -1,10 +1,10 @@
 import sys
-import traceback
 import datetime
 from typing import Dict
 from mcp.server.fastmcp import FastMCP
 from chartmogul_mcp import api_client
 from chartmogul_mcp import utils
+from chartmogul_mcp.utils import LOGGER
 from dotenv import load_dotenv
 
 
@@ -15,7 +15,7 @@ class ChartMogulMcp:
 
         # Initialize MCP Server
         self.mcp = FastMCP(utils.MCP_SERVER_NAME, deps=utils.DEPENDENCIES)
-        print("ChartMogul MCP Server initialized", file=sys.stderr)
+        LOGGER.info("ChartMogul MCP Server initialized")
 
         self.config = api_client.init_chartmogul_config()
 
@@ -123,11 +123,12 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='create_contact',
                        description='Create a contact in your ChartMogul account. '
-                                   'Attributes that can be added are: customer_uuid (required), data_source_uuid '
-                                   '(required), first_name, last_name, position, title, email, phone, linked_in, '
+                                   'IMPORTANT: Always ask for ALL missing required details before creating a contact. '
+                                   'Required fields are: customer_uuid, data_source_uuid. '
+                                   'Optional fields are: first_name, last_name, position, title, email, phone, linked_in, '
                                    'twitter, notes, custom (an array containing the custom attributes; each '
-                                   'custom attribute must be defined as an object with a key and value), '
-                                   'and should be included in a data dictionary.')
+                                   'custom attribute must be defined as an object with a key and value). '
+                                   'All fields should be included in a data dictionary.')
         async def create_contact(data: dict) -> Dict:
             return api_client.create_contact(self.config, data)
 
@@ -158,11 +159,12 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='create_customer_note',
                        description='Create a customer note in your ChartMogul account. '
-                                   'Attributes that can be modified are: customer_uuid (required), type (required) '
-                                   '(call or note), author_email, text, '
+                                   'IMPORTANT: Always ask for ALL missing required details before creating a customer note. '
+                                   'Required fields are: customer_uuid, type (call or note). '
+                                   'Optional fields are: author_email, text, '
                                    'call_duration (integer; relevant for type call; duration of the call in seconds), '
-                                   'created_at (an ISO 8601-formatted time in the past), and should be included in a '
-                                   'data dictionary.')
+                                   'created_at (an ISO 8601-formatted time in the past). '
+                                   'All fields should be included in a data dictionary.')
         async def create_customer_note(data: dict) -> Dict:
             return api_client.create_customer_note(self.config, data)
 
@@ -205,16 +207,17 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='create_opportunity',
                        description='Create an opportunity in your ChartMogul account. '
-                                   'Attributes that can be created are: customer_uuid (required), owner (required) '
+                                   'IMPORTANT: Always ask for ALL missing required details before creating an opportunity. '
+                                   'Required fields are: customer_uuid, owner '
                                    '(email address of the ChartMogul user with a CRM seat who is the primary '
-                                   'salesperson responsible for this opportunity), pipeline (required), '
-                                   'pipeline_stage (required), estimated_close_date (required) '
-                                   '(an ISO 8601-formatted date), amount_in_cents (required), currency (required) '
-                                   '(The 3-letter currency code for the expected close value, e.g. USD, EUR or GBP), '
-                                   'type (recurring or one-time), forecast_category (pipeline, best_case, committed, '
-                                   'lost or won), win_likelihood (integer; 0-100), '
-                                   'custom (list of custom attributes as key and value pairs) '
-                                   'and should be included in a data dictionary.')
+                                   'salesperson responsible for this opportunity), pipeline, '
+                                   'pipeline_stage, estimated_close_date (an ISO 8601-formatted date), '
+                                   'amount_in_cents, currency (The 3-letter currency code for the expected close value, '
+                                   'e.g. USD, EUR or GBP). '
+                                   'Optional fields: type (recurring or one-time), forecast_category (pipeline, '
+                                   'best_case, committed, lost or won), win_likelihood (integer; 0-100), '
+                                   'custom (list of custom attributes as key and value pairs). '
+                                   'All fields should be included in a data dictionary.')
         async def create_opportunity(data: dict) -> Dict:
             return api_client.create_opportunity(self.config, data)
 
@@ -237,7 +240,7 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='update_plan',
                        description='Update certain modifiable attributes of a plan in your ChartMogul account. '
-                                   'Attributes that can be created are: name, interval_count '
+                                   'Attributes that can be modified are: name, interval_count '
                                    '(frequency of billing interval; accepts integers greater than 0, '
                                    'e.g., 6 for a half-yearly plan), interval_unit (day, month or year) '
                                    'and should be included in a data dictionary.')
@@ -246,10 +249,12 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='create_plan',
                        description='Create a plan in your ChartMogul account. '
-                                   'Attributes that can be created are: data_source_uuid (required), name (required), '
-                                   'interval_count (required) (frequency of billing interval; accepts integers greater than 0, '
-                                   'e.g., 6 for a half-yearly plan), interval_unit (required) (day, month or year), '
-                                   'external_id and should be included in a data dictionary.')
+                                   'IMPORTANT: Always ask for ALL missing required details before creating a plan. '
+                                   'Required fields are: data_source_uuid, name, '
+                                   'interval_count (frequency of billing interval; accepts integers greater than 0, '
+                                   'e.g., 6 for a half-yearly plan), interval_unit (day, month or year). '
+                                   'Optional field: external_id. '
+                                   'All fields should be included in a data dictionary.')
         async def create_plan(data: dict) -> Dict:
             return api_client.create_plan(self.config, data)
 
@@ -283,7 +288,8 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='create_plan_group',
                        description='Create a plan group in your ChartMogul account. '
-                                   'Attributes that can be created are: name (required), plans (required) '
+                                   'IMPORTANT: Always ask for ALL missing required details before creating a plan group. '
+                                   'Required fields are: name, plans '
                                    '(array of the uuids of the plans to be added to the plan group) '
                                    'and should be included in a data dictionary.')
         async def create_plan_group(data: dict) -> Dict:
@@ -325,11 +331,12 @@ class ChartMogulMcp:
 
         @self.mcp.tool(name='create_task',
                        description='Create a task in your ChartMogul account. '
-                                   'Attributes that can be created are: customer_uuid (required), task_details (required) '
-                                   '(up to 255 characters), assignee (required) (email address of the ChartMogul user '
-                                   'with a CRM seat assigned to the task), due_date (required) (an ISO 8601-formatted date), '
-                                   'completed_at (an ISO 8601-formatted date)'
-                                   'and should be included in a data dictionary.')
+                                   'IMPORTANT: Always ask for ALL missing required details before creating a task. '
+                                   'Required fields are: customer_uuid, task_details '
+                                   '(up to 255 characters), assignee (email address of the ChartMogul user '
+                                   'with a CRM seat assigned to the task), due_date (an ISO 8601-formatted date). '
+                                   'Optional field: completed_at (an ISO 8601-formatted date).'
+                                   'All fields should be included in a data dictionary.')
         async def create_task(data: dict) -> Dict:
             return api_client.create_task(self.config, data)
 
@@ -459,9 +466,8 @@ class ChartMogulMcp:
     def run(self):
         """Start the MCP server."""
         try:
-            print("Running MCP Server for ChartMogul API interactions", file=sys.stderr)
+            LOGGER.info("Running MCP Server for ChartMogul API interactions")
             self.mcp.run(transport="stdio")
         except Exception as e:
-            print(f"Fatal Error in ChartMogul MCP Server: {str(e)}", file=sys.stderr)
-            traceback.print_exc(file=sys.stderr)
+            LOGGER.error(f"Fatal Error in ChartMogul MCP Server: {str(e)}", exc_info=True)
             sys.exit(1)
