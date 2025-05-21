@@ -44,4 +44,6 @@ CHARTMOGUL_TOKEN=<YOUR-CHARTMOGUL-TOKEN>
 
 5. Run `source .venv/bin/activate` to activate the created virtual environment.
 
-6. Run `mcp dev main.py` to start the MCP server.
+6. Run `mcp dev main.py:cm_mcp` to start the development MCP server. This command will need Node.js and npm installation.
+
+7. Inspect and connect to the MCP server at http://127.0.0.1:6274
