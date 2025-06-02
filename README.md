@@ -1,5 +1,73 @@
 # ChartMogul's MCP Server
 
+## Supported Tools
+
+### Account & Data Sources
+- `retrieve_account` - Get account information
+- `list_sources` - List all data sources with optional filtering
+- `retrieve_source` - Get specific data source by UUID
+
+### Customer Management
+- `list_customers` - List customers with filtering options
+- `search_customers` - Search customers by email
+- `retrieve_customer` - Get customer by UUID
+- `create_customer` - Create new customer
+- `update_customer` - Update customer attributes
+- `list_customer_subscriptions` - Get customer's subscriptions
+- `list_customer_activities` - Get customer activities
+- `list_customer_attributes` - Get customer attributes
+- `add_customer_tags` - Add tags to customer
+- `add_customer_custom_attributes` - Add custom attributes to customer
+
+### Contacts
+- `list_contacts` - List all contacts
+- `retrieve_contact` - Get contact by UUID
+- `create_contact` - Create new contact
+- `update_contact` - Update contact information
+
+### Customer Notes
+- `list_customer_notes` - List customer notes and calls
+- `retrieve_customer_note` - Get specific note by UUID
+- `create_customer_note` - Create new note or call log
+- `update_customer_note` - Update existing note
+
+### Sales & CRM
+- `list_opportunities` - List sales opportunities
+- `retrieve_opportunity` - Get opportunity by UUID
+- `create_opportunity` - Create new opportunity
+- `update_opportunity` - Update opportunity details
+- `list_tasks` - List customer tasks
+- `retrieve_task` - Get task by UUID
+- `create_task` - Create new task
+- `update_task` - Update task information
+
+### Plans
+- `list_plans` - List subscription plans
+- `retrieve_plan` - Get plan by UUID
+- `create_plan` - Create new plan
+- `update_plan` - Update plan details
+- `list_plan_groups` - List plan groups
+- `retrieve_plan_group` - Get plan group by UUID
+- `create_plan_group` - Create new plan group
+- `update_plan_group` - Update plan group
+- `list_plan_group_plans` - List plans in a group
+
+### Analytics & Metrics
+- `all_metrics` - Get all key metrics (MRR, ARR, ARPA, ASP, customer count, churn rates, LTV)
+- `mrr_metrics` - Get Monthly Recurring Revenue metrics
+- `arr_metrics` - Get Annual Run Rate metrics
+- `arpa_metrics` - Get Average Revenue Per Account metrics
+- `asp_metrics` - Get Average Sale Price metrics
+- `customer_count_metrics` - Get customer count metrics
+- `customer_churn_rate_metrics` - Get customer churn rate metrics
+- `mrr_churn_rate_metrics` - Get MRR churn rate metrics
+- `ltv_metrics` - Get Customer Lifetime Value metrics
+
+### Data Operations
+- `list_subscription_events` - List subscription events
+- `list_invoices` - List invoices with filtering
+- `list_activities` - List business activities (new_biz, expansion, churn, etc.)
+
 ## Usage
 1. Open the Claude Desktop configuration file located at:
    * On macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
