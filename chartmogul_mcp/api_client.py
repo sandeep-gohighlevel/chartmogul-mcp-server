@@ -94,6 +94,21 @@ def list_customers(config, data_source_uuid=None, external_id=None, status=None,
     return all_customers
 
 
+def create_customer(config, data):
+    """
+    Create a customer from ChartMogul API.
+
+    Returns:
+    """
+    LOGGER.info(f"Creating customer {data}.")
+    request = chartmogul.Customer.create(config, data=data)
+    try:
+        customer = parse_object(request.get())
+    except Exception as e:
+        LOGGER.error(f"Error creating customer: {str(e)}", exc_info=True)
+        return None
+    return customer
+
 def retrieve_customer(config, uuid):
     """
     Retrieve a customer from ChartMogul API.
@@ -202,6 +217,55 @@ def list_customer_activities(config, uuid=None, limit=20) -> list:
             LOGGER.error(f"Error fetching ChartMogul activities: {str(e)}", exc_info=True)
             return None
     return all_activities
+
+
+def list_customer_attributes(config, uuid) -> list:
+    """
+    List all attributes of a customer from ChartMogul API.
+
+    Returns: A list of ChartMogul attributes.
+    """
+    LOGGER.info(f"List attributes for {uuid}.")
+    request = chartmogul.Attributes.retrieve(config, uuid=uuid)
+    try:
+        attributes = parse_object(request.get())
+    except Exception as e:
+        LOGGER.error(f"Error fetching attributes: {str(e)}", exc_info=True)
+        return None
+    return attributes
+
+
+def add_customer_tags(config, uuid, data) -> list:
+    """
+    Add tags to customer using ChartMogul API.
+
+    Returns: A list of ChartMogul tags added.
+    """
+    LOGGER.info(f"Add tags for {uuid}, {data}.")
+    request = chartmogul.Tags.add(config, uuid=uuid, data={"tags": data})
+    try:
+        tags = parse_object(request.get())
+    except Exception as e:
+        LOGGER.error(f"Error adding tags: {str(e)}", exc_info=True)
+        return None
+    return tags
+
+
+def add_customer_custom_attributes(config, uuid, data) -> list:
+    """
+    Add custom attributes to customer using ChartMogul API.
+
+    Returns: A list of ChartMogul custom attributes added.
+    """
+    LOGGER.info(f"Add custom attributes for {uuid}, {data}.")
+    request = chartmogul.CustomAttributes.add(config, uuid=uuid, data={"custom": data})
+    try:
+        custom_attributes = parse_object(request.get())
+    except Exception as e:
+        LOGGER.error(f"Error adding custom attributes: {str(e)}", exc_info=True)
+        return None
+    return custom_attributes
+
 
 ## Contacts Endpoints
 
@@ -927,6 +991,116 @@ def ltv_metrics(config, start_date, end_date, interval, geo=None, plans=None) ->
         LOGGER.error(f"Error fetching LTV metrics: {str(e)}", exc_info=True)
         return None
     return all_ltv
+
+
+## Subscription Events
+
+def list_subscription_events(config, data_source_uuid=None, external_id=None, customer_external_id=None,
+                             subscription_external_id=None, event_type=None, event_date=None, effective_date=None,
+                             plan_external_id=None, limit=20) -> list:
+    """
+    List all subscription events from ChartMogul API.
+
+    Returns: A list of ChartMogul subscription events.
+    """
+    LOGGER.info(f"List subscription events for {data_source_uuid}, {external_id}, {customer_external_id}, {event_type}, "
+                f"{subscription_external_id}, {event_date}, {effective_date}, {plan_external_id}.")
+    all_subscription_events = []
+    has_more = True
+    cursor = None
+    per_page = 20
+    total = 0
+    while has_more and total < limit:
+        request = chartmogul.SubscriptionEvent.all(config,
+                                                   data_source_uuid=data_source_uuid,
+                                                   external_id=external_id,
+                                                   customer_external_id=customer_external_id,
+                                                   subscription_external_id=subscription_external_id,
+                                                   event_type=event_type,
+                                                   event_date=event_date,
+                                                   effective_date=effective_date,
+                                                   plan_external_id=plan_external_id,
+                                                   cursor=cursor,
+                                                   per_page=per_page)
+        try:
+            subscription_events = request.get()
+            all_subscription_events.extend([parse_object(entry) for entry in subscription_events.subscription_events])
+            total += per_page
+            has_more = subscription_events.has_more
+            cursor = subscription_events.cursor
+        except Exception as e:
+            LOGGER.error(f"Error fetching ChartMogul subscription events: {str(e)}", exc_info=True)
+            return None
+    return all_subscription_events
+
+
+## Invoices
+
+def list_invoices(config, data_source_uuid=None, external_id=None, customer_uuid=None,
+                  validation_type=None, limit=20) -> list:
+    """
+    List all invoices from ChartMogul API.
+
+    Returns: A list of ChartMogul invoices.
+    """
+    LOGGER.info(f"List invoices for {data_source_uuid}, {external_id}, {customer_uuid}, {validation_type}.")
+    all_invoices = []
+    has_more = True
+    cursor = None
+    per_page = 20
+    total = 0
+    while has_more and total < limit:
+        request = chartmogul.Invoice.all(config,
+                                         data_source_uuid=data_source_uuid,
+                                         external_id=external_id,
+                                         customer_uuid=customer_uuid,
+                                         validation_type=validation_type,
+                                         cursor=cursor,
+                                         per_page=per_page)
+        try:
+            invoices = request.get()
+            all_invoices.extend([parse_object(entry) for entry in invoices.invoices])
+            total += per_page
+            has_more = invoices.has_more
+            cursor = invoices.cursor
+        except Exception as e:
+            LOGGER.error(f"Error fetching ChartMogul invoices: {str(e)}", exc_info=True)
+            return None
+    return all_invoices
+
+
+## Activities
+
+def list_activities(config, start_date=None, end_date=None, type=None, order=None, limit=20) -> list:
+    """
+    List all activities from ChartMogul API.
+
+    Returns: A list of ChartMogul activities.
+    """
+    LOGGER.info(f"List activities for {start_date}, {end_date}, {type}, {order}.")
+    all_activities = []
+    has_more = True
+    cursor = None
+    per_page = 20
+    total = 0
+    while has_more and total < limit:
+        request = chartmogul.Activity.all(config,
+                                         start_date=start_date,
+                                         end_date=end_date,
+                                         type=type,
+                                         order=order,
+                                         cursor=cursor,
+                                         per_page=per_page)
+        try:
+            activities = request.get()
+            all_activities.extend([parse_object(entry) for entry in activities.entries])
+            total += per_page
+            has_more = activities.has_more
+            cursor = activities.cursor
+        except Exception as e:
+            LOGGER.error(f"Error fetching ChartMogul activities: {str(e)}", exc_info=True)
+            return None
+    return all_activities
 
 
 def parse_object(obj):

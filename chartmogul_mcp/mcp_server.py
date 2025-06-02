@@ -71,6 +71,25 @@ class ChartMogulMcp:
         async def retrieve_customer(uuid: str) -> Dict:
             return api_client.retrieve_customer(self.config, uuid)
 
+        @self.mcp.tool(name='create_customer',
+                       description='Create a customer in your ChartMogul account. '
+                                   'IMPORTANT: Always ask for ALL missing required details before creating a customer. '
+                                   'Required fields are: data_source_uuid, external_id. '
+                                   'Optional fields are: company, country (Country code of customer location as per '
+                                   'ISO-3166 alpha-2 standard, e.g. US or DE), state (The US state where the customer '
+                                   'is located — the US state code as per the ISO-3166-2 standard, e.g. US-CA or '
+                                   'US-NY.), city, zip, lead_created_at (ISO 8601-formatted time, in the past), '
+                                   'free_trial_started_at (ISO 8601-formatted time, in the past), '
+                                   'attributes (an array containing the additional attributes of the customer '
+                                   'in the form of tags and custom attributes; tags: An array of tags, '
+                                   'custom: An array of custom attributes to be added to the customer. Each custom '
+                                   'attribute must have a type, key and value), owner (email address of the user that '
+                                   'owns this customer), primary_contact (object which contains first_name, last_name, '
+                                   'email, title, phone, linked_in, twitter, notes), website_url.'
+                                   'All fields should be included in a data dictionary.')
+        async def create_customer(data: dict) -> Dict:
+            return api_client.create_customer(self.config, data)
+
         @self.mcp.tool(name='update_customer',
                        description='Update certain modifiable attributes of a customer in your ChartMogul account. '
                                    'Attributes that can be modified are: company, lead_created_at, '
@@ -96,6 +115,33 @@ class ChartMogulMcp:
                                    'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.')
         async def list_customer_activities(uuid: str, limit: int = 20) -> list:
             return api_client.list_customer_activities(self.config, uuid, limit)
+
+        @self.mcp.tool(name='list_customer_attributes',
+                       description='Get a list of all customer attributes with the specified customer uuid '
+                                   'in your ChartMogul account.')
+        async def list_customer_attributes(uuid: str) -> list:
+            return api_client.list_customer_attributes(self.config, uuid)
+
+        @self.mcp.tool(name='add_customer_tags',
+                       description='Add a list of tags to the specified customer uuid in your ChartMogul account.'
+                                   'This endpoint is idempotent, meaning that calling it multiple times with the same '
+                                   'tags, no additional tags will be added to the customer. If the endpoint is '
+                                   'called with a single new tag, it will be added to previous tags of the user.')
+        async def add_customer_tags(uuid: str, tags: list) -> list:
+            return api_client.add_customer_tags(self.config, uuid, tags)
+
+        @self.mcp.tool(name='add_customer_custom_attributes',
+                       description='Add a list of custom attributes to the specified customer uuid in your ChartMogul account.'
+                                   'custom_attributes is an array containing the custom attributes to be added to the '
+                                   'customer. Each custom attribute must have a type, key and value as described below:'
+                                   'type: The data type of the custom attribute. Can be one of String, Integer, Decimal, '
+                                   'Timestamp or Boolean. key: The name of the custom attribute. Accepts alphanumeric '
+                                   'characters and underscores, value: The value of the custom attribute. '
+                                   'Should be of the data type as specified in type. source: Optional parameter to '
+                                   'specify where the custom attribute was created, displayed in the ChartMogul UI. '
+                                   'Defaults to API.')
+        async def add_customer_custom_attributes(uuid: str, custom_attributes: list) -> list:
+            return api_client.add_customer_custom_attributes(self.config, uuid, custom_attributes)
 
         ## contacts
         @self.mcp.tool(name='list_contacts',
@@ -346,7 +392,7 @@ class ChartMogulMcp:
                                    'Metrics include: MRR, ARR, ARPA, ASP, customer count, customer churn rate, '
                                    'MRR churn rate and LTV. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -360,7 +406,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='mrr_metrics',
                        description='Retrieve Monthly Recurring Revenue (MRR) metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -374,7 +420,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='arr_metrics',
                        description='Retrieve Annualized Run Rate (ARR) metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -388,7 +434,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='arpa_metrics',
                        description='Retrieve Average Revenue Per Account (ARPA) metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -402,7 +448,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='asp_metrics',
                        description='Retrieve Average Sale Price (ASP) metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -416,7 +462,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='customer_count_metrics',
                        description='Retrieve customer count metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -428,7 +474,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='customer_churn_rate_metrics',
                        description='Retrieve customer churn rate metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -440,7 +486,7 @@ class ChartMogulMcp:
         @self.mcp.tool(name='mrr_churn_rate_metrics',
                        description='Retrieve Net MRR Churn Rate metrics, for the specified time period, interval and filters. '
                                    'Provide the start-date, end-date and interval (possible values are day, week, month,'
-                                   'or quarter. Additional filter values include geo (A comma-separated list of ISO '
+                                   'quarter or year. Additional filter values include geo (A comma-separated list of ISO '
                                    '3166-1 Alpha-2 formatted country codes) and plans (A comma-separated list of '
                                    'plan names (as configured in your ChartMogul account), UUIDs and external IDs to '
                                    'filter the results. Spaces in plan names must be URL-encoded, '
@@ -461,6 +507,55 @@ class ChartMogulMcp:
         async def ltv_metrics(start_date: str, end_date: str, interval: str, geo: str = None,
                               plans: str = None) -> list:
             return api_client.ltv_metrics(self.config, start_date, end_date, interval, geo, plans)
+
+        ## subscription events
+        @self.mcp.tool(name='list_subscription_events',
+                       description='Get a list of all subscription events in your ChartMogul account.'
+                                   'We have a default limit of 20 subscription events, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the data_source_uuid, external_id of a subscription event, '
+                                   'customer_external_id, subscription_external_id, event_type (one of '
+                                   'subscription_start, subscription_start_scheduled, '
+                                   'scheduled_subscription_start_retracted, subscription_cancelled, '
+                                   'subscription_cancellation_scheduled, scheduled_subscription_cancellation_retracted, '
+                                   'subscription_updated, subscription_update_scheduled, '
+                                   'scheduled_subscription_update_retracted, subscription_event_retracted), event_date '
+                                   '(an ISO 8601 formatted time), effective_date (an ISO 8601 formatted time), '
+                                   'plan_external_id.')
+        async def list_subscription_events(data_source_uuid: str = None, external_id: str = None, customer_external_id: str = None,
+                                           subscription_external_id: str = None, event_type: str = None,
+                                           event_date: datetime.datetime = None,
+                                           effective_date: datetime.datetime = None, plan_external_id: str = None,
+                                           limit: int = 20) -> list:
+            return api_client.list_subscription_events(self.config, data_source_uuid, external_id, customer_external_id,
+                                                       subscription_external_id, event_type, event_date, effective_date,
+                                                       plan_external_id, limit)
+
+        ## invoices
+        @self.mcp.tool(name='list_invoices',
+                       description='Get a list of all invoices in your ChartMogul account.'
+                                   'We have a default limit of 20 invoices, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter using the data_source_uuid, invoice external_id, customer_uuid and '
+                                   'validation_type (one of valid, invalid or all).')
+        async def list_invoices(data_source_uuid: str = None, external_id: str = None, customer_uuid: str = None,
+                                validation_type: str = None, limit: int = 20) -> list:
+            return api_client.list_invoices(self.config, data_source_uuid, external_id, customer_uuid, validation_type,
+                                            limit)
+
+        ## activities
+        @self.mcp.tool(name='list_activities',
+                       description='Get a list of all activities in your ChartMogul account.'
+                                   'We have a default limit of 20 activities, '
+                                   'ask but discourage the user if they want more than 20 as this will exhaust AI tokens.'
+                                   'You can filter with start_date (an ISO 8601 formatted time), end_date '
+                                   '(an ISO 8601 formatted time), type (one of new_biz, reactivation, expansion, '
+                                   'contraction or churn) and order (Setting value as -date returns results in '
+                                   'descending order with the latest activity returned first, while date returns '
+                                   'results in ascending order.). ')
+        async def list_activities(start_date: datetime.datetime = None, end_date: datetime.datetime = None,
+                                  type: str = None, order: str = None, limit: int = 20) -> list:
+            return api_client.list_activities(self.config, start_date, end_date, type, order, limit)
 
 
     def run(self):
